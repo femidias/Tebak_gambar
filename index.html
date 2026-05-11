@@ -14,7 +14,7 @@
             min-height: 100vh;
             background: linear-gradient(135deg, #a1c4fd 0%, #c2e9fb 100%);
             margin: 0;
-            padding: 10px;
+            padding: 15px;
             box-sizing: border-box;
         }
 
@@ -22,24 +22,26 @@
             display: flex;
             flex-direction: column;
             align-items: center;
-            gap: 20px;
+            gap: 15px;
             width: 100%;
-            max-width: 600px;
+            max-width: 500px; /* Ukuran maksimal agar nyaman di mata */
         }
 
         .alphabet-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(40px, 1fr));
+            /* Membuat 7 kolom yang sama rata */
+            grid-template-columns: repeat(7, 1fr); 
             gap: 8px;
             width: 100%;
             background: rgba(255, 255, 255, 0.5);
             padding: 15px;
             border-radius: 20px;
             box-shadow: inset 0 2px 5px rgba(0,0,0,0.05);
+            box-sizing: border-box;
         }
 
         .letter-btn {
-            aspect-ratio: 1;
+            aspect-ratio: 1 / 1;
             display: flex;
             align-items: center;
             justify-content: center;
@@ -50,12 +52,11 @@
             color: #3498db;
             cursor: pointer;
             transition: all 0.2s;
-            font-size: 1.1rem;
+            font-size: 1rem;
         }
 
-        /* Gaya untuk huruf yang tidak aktif (Q, V, X, Z) */
         .letter-btn.disabled {
-            background: #2c3e50; /* Warna hitam/gelap */
+            background: #2c3e50;
             color: #7f8c8d;
             border-color: #2c3e50;
             cursor: not-allowed;
@@ -71,36 +72,38 @@
         .container {
             text-align: center;
             background: rgba(255, 255, 255, 0.9);
-            padding: 25px;
+            padding: 20px;
             border-radius: 25px;
             box-shadow: 0 10px 30px rgba(0,0,0,0.15);
             width: 100%;
             backdrop-filter: blur(5px);
+            box-sizing: border-box;
         }
 
         .image-wrapper {
             width: 100%;
-            position: relative;
-            padding-top: 100%; 
-            margin-bottom: 10px;
+            max-width: 280px; /* Batasi ukuran gambar agar tidak terlalu besar */
+            margin: 0 auto;
+            aspect-ratio: 1 / 1; /* Menjaga tetap kotak tanpa CSS absolute */
         }
 
         #game-image {
-            position: absolute;
-            top: 0;
-            left: 0;
             width: 100%;
             height: 100%;
             object-fit: cover;
             border-radius: 20px;
             cursor: pointer;
-            border: 8px solid #ffffff;
+            border: 6px solid #ffffff;
             box-shadow: 0 4px 15px rgba(0,0,0,0.1);
-            transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            transition: transform 0.2s;
+        }
+
+        #game-image:active {
+            transform: scale(0.95);
         }
 
         #display-text {
-            font-size: clamp(1.8rem, 7vw, 3rem);
+            font-size: clamp(1.5rem, 6vw, 2.5rem);
             font-weight: 900;
             color: #2c3e50;
             margin-top: 15px;
@@ -112,19 +115,21 @@
             color: #7f8c8d;
             margin-top: 5px;
         }
+
+        /* Penyesuaian untuk layar HP kecil */
+        @media (max-width: 400px) {
+            .alphabet-grid {
+                grid-template-columns: repeat(6, 1fr);
+                gap: 5px;
+                padding: 10px;
+            }
+            .letter-btn {
+                font-size: 0.8rem;
+            }
+        }
     </style>
 </head>
 <body>
-<div class="main-layout">
-    <div style="text-align: center; margin-bottom: -10px;">
-        <h1 style="color: #2c3e50; font-size: 1.5rem; letter-spacing: 2px;">
-            🎮 TEBAK GAMBAR & SUARA
-        </h1>
-        <div style="width: 50px; height: 4px; background: #3498db; margin: 5px auto; border-radius: 2px;"></div>
-    </div>
-
-    <div id="alphabet-container" class="alphabet-grid">
-        <!-- ... sisanya sama ... -->
 
 <div class="main-layout">
     <div id="alphabet-container" class="alphabet-grid">
@@ -142,7 +147,6 @@
 <audio id="game-audio"></audio>
 
 <script>
-    // Data yang tersedia
     const daftarData = [
       { huruf: 'A - AYAM', kode: 'A', gambar: 'img/a.jpeg', suara: 'audio/a.mp3' },
       { huruf: 'B - BEBEK', kode: 'B', gambar: 'img/b.jpeg', suara: 'audio/b.mp3' },
@@ -153,7 +157,7 @@
       { huruf: 'G - GAJAH', kode: 'G', gambar: 'img/g.jpeg', suara: 'audio/g.mp3' },
       { huruf: 'H - HARIMAU', kode: 'H', gambar: 'img/h.jpeg', suara: 'audio/h.mp3' },
       { huruf: 'I - IKAN', kode: 'I', gambar: 'img/i.jpeg', suara: 'audio/i.mp3' },
-      { huruf: 'J - JERAPA', kode: 'J', gambar: 'img/j.jpeg', suara: 'audio/j.mp3' },
+      { huruf: 'J - JERAPAH', kode: 'J', gambar: 'img/j.jpeg', suara: 'audio/j.mp3' },
       { huruf: 'K - KUCING', kode: 'K', gambar: 'img/k.jpeg', suara: 'audio/k.mp3' },
       { huruf: 'L - LALAT', kode: 'L', gambar: 'img/l.jpeg', suara: 'audio/l.mp3' },
       { huruf: 'M - MEJA', kode: 'M', gambar: 'img/m.jpeg', suara: 'audio/m.mp3' },
@@ -175,12 +179,13 @@
         const container = document.getElementById('alphabet-container');
         const alfabetLengkap = "ABCDEFGHIJKLMNOPQRSTUVWXYZ".split("");
 
+        container.innerHTML = ''; // Bersihkan kontainer
+
         alfabetLengkap.forEach(huruf => {
             const btn = document.createElement('div');
             btn.className = 'letter-btn';
             btn.innerText = huruf;
 
-            // Cari apakah ada data untuk huruf ini
             const dataItem = daftarData.find(d => d.kode === huruf);
 
             if (dataItem) {
@@ -189,10 +194,8 @@
                     tampilkanSoal();
                 };
             } else {
-                // Jika tidak ada data (Q, V, X, Z), buat jadi hitam & non-aktif
                 btn.classList.add('disabled');
             }
-
             container.appendChild(btn);
         });
     }
@@ -226,7 +229,7 @@
         
         const audio = document.getElementById('game-audio');
         audio.src = dataSekarang.suara;
-        audio.play();
+        audio.play().catch(e => console.log("Audio play diblokir browser sebelum interaksi"));
     }
 
     window.onload = () => {
