@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tebak Gambar & Suara - Femi</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            background: linear-gradient(135deg, #a1c4fd 0%, #c2e9fb 100%);
+            margin: 0;
+            padding: 10px;
+            box-sizing: border-box;
+        }
+
+        .main-layout {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 20px;
+            width: 100%;
+            max-width: 600px;
+        }
+
+        .alphabet-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(40px, 1fr));
+            gap: 8px;
+            width: 100%;
+            background: rgba(255, 255, 255, 0.5);
+            padding: 15px;
+            border-radius: 20px;
+            box-shadow: inset 0 2px 5px rgba(0,0,0,0.05);
+        }
+
+        .letter-btn {
+            aspect-ratio: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: white;
+            border: 2px solid #3498db;
+            border-radius: 12px;
+            font-weight: bold;
+            color: #3498db;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-size: 1.1rem;
+        }
+
+        /* Gaya untuk huruf yang tidak aktif (Q, V, X, Z) */
+        .letter-btn.disabled {
+            background: #2c3e50; /* Warna hitam/gelap */
+            color: #7f8c8d;
+            border-color: #2c3e50;
+            cursor: not-allowed;
+            opacity: 0.8;
+        }
+
+        .letter-btn:not(.disabled):hover {
+            background: #3498db;
+            color: white;
+            transform: translateY(-3px);
+        }
+
+        .container {
+            text-align: center;
+            background: rgba(255, 255, 255, 0.9);
+            padding: 25px;
+            border-radius: 25px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+            width: 100%;
+            backdrop-filter: blur(5px);
+        }
+
+        .image-wrapper {
+            width: 100%;
+            position: relative;
+            padding-top: 100%; 
+            margin-bottom: 10px;
+        }
+
+        #game-image {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            border-radius: 20px;
+            cursor: pointer;
+            border: 8px solid #ffffff;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        #display-text {
+            font-size: clamp(1.8rem, 7vw, 3rem);
+            font-weight: 900;
+            color: #2c3e50;
+            margin-top: 15px;
+            min-height: 1.2em;
+        }
+
+        .hint {
+            font-size: 0.85rem;
+            color: #7f8c8d;
+            margin-top: 5px;
+        }
+    </style>
+</head>
+<body>
+
+<div class="main-layout">
+    <div id="alphabet-container" class="alphabet-grid">
+        </div>
+
+    <div class="container">
+        <div class="image-wrapper">
+            <img id="game-image" src="" alt="Klik Gambar" onclick="handleKlikGambar()">
+        </div>
+        <div id="display-text">?</div>
+        <p class="hint">Klik huruf A-Z atau klik gambar untuk bermain</p>
+    </div>
+</div>
+
+<audio id="game-audio"></audio>
+
+<script>
+    // Data yang tersedia
+    const daftarData = [
+      { huruf: 'A - AYAM', kode: 'A', gambar: 'img/a.jpeg', suara: 'audio/a.mp3' },
+      { huruf: 'B - BEBEK', kode: 'B', gambar: 'img/b.jpeg', suara: 'audio/b.mp3' },
+      { huruf: 'C - CICAK', kode: 'C', gambar: 'img/c.jpeg', suara: 'audio/c.mp3' },
+      { huruf: 'D - DOMBA', kode: 'D', gambar: 'img/d.jpeg', suara: 'audio/d.mp3' },
+      { huruf: 'E - ELANG', kode: 'E', gambar: 'img/e.jpeg', suara: 'audio/e.mp3' },
+      { huruf: 'F - FOTO', kode: 'F', gambar: 'img/f.jpeg', suara: 'audio/f.mp3' },
+      { huruf: 'G - GAJAH', kode: 'G', gambar: 'img/g.jpeg', suara: 'audio/g.mp3' },
+      { huruf: 'H - HARIMAU', kode: 'H', gambar: 'img/h.jpeg', suara: 'audio/h.mp3' },
+      { huruf: 'I - IKAN', kode: 'I', gambar: 'img/i.jpeg', suara: 'audio/i.mp3' },
+      { huruf: 'J - JERAPA', kode: 'J', gambar: 'img/j.jpeg', suara: 'audio/j.mp3' },
+      { huruf: 'K - KUCING', kode: 'K', gambar: 'img/k.jpeg', suara: 'audio/k.mp3' },
+      { huruf: 'L - LALAT', kode: 'L', gambar: 'img/l.jpeg', suara: 'audio/l.mp3' },
+      { huruf: 'M - MEJA', kode: 'M', gambar: 'img/m.jpeg', suara: 'audio/m.mp3' },
+      { huruf: 'N - NYAMUK', kode: 'N', gambar: 'img/n.jpeg', suara: 'audio/n.mp3' },
+      { huruf: 'O - OBAT', kode: 'O', gambar: 'img/o.jpeg', suara: 'audio/o.mp3' },
+      { huruf: 'P - PANDA', kode: 'P', gambar: 'img/p.jpeg', suara: 'audio/p.mp3' },
+      { huruf: 'R - RODA', kode: 'R', gambar: 'img/r.jpeg', suara: 'audio/r.mp3' },
+      { huruf: 'S - SEPATU', kode: 'S', gambar: 'img/s.jpeg', suara: 'audio/s.mp3' },
+      { huruf: 'T - TAS', kode: 'T', gambar: 'img/t.jpeg', suara: 'audio/t.mp3' },
+      { huruf: 'U - ULAR', kode: 'U', gambar: 'img/u.jpeg', suara: 'audio/u.mp3' },
+      { huruf: 'W - WAJAN', kode: 'W', gambar: 'img/w.jpeg', suara: 'audio/w.mp3' },
+      { huruf: 'Y - YOYO', kode: 'Y', gambar: 'img/y.jpeg', suara: 'audio/y.mp3' },
+    ];
+
+    let dataSekarang = {};
+    let statusJawabanTerbuka = false;
+
+    function buatMenuHuruf() {
+        const container = document.getElementById('alphabet-container');
+        const alfabetLengkap = "ABCDEFGHIJKLMNOPQRSTUVWXYZ".split("");
+
+        alfabetLengkap.forEach(huruf => {
+            const btn = document.createElement('div');
+            btn.className = 'letter-btn';
+            btn.innerText = huruf;
+
+            // Cari apakah ada data untuk huruf ini
+            const dataItem = daftarData.find(d => d.kode === huruf);
+
+            if (dataItem) {
+                btn.onclick = () => {
+                    dataSekarang = dataItem;
+                    tampilkanSoal();
+                };
+            } else {
+                // Jika tidak ada data (Q, V, X, Z), buat jadi hitam & non-aktif
+                btn.classList.add('disabled');
+            }
+
+            container.appendChild(btn);
+        });
+    }
+
+    function handleKlikGambar() {
+        if (!statusJawabanTerbuka) {
+            tampilkanJawaban();
+            statusJawabanTerbuka = true;
+        } else {
+            acakGame();
+        }
+    }
+
+    function acakGame() {
+        const indeksAcak = Math.floor(Math.random() * daftarData.length);
+        dataSekarang = daftarData[indeksAcak];
+        tampilkanSoal();
+    }
+
+    function tampilkanSoal() {
+        statusJawabanTerbuka = false;
+        document.getElementById('game-image').src = dataSekarang.gambar;
+        document.getElementById('display-text').innerText = "?";
+        document.getElementById('display-text').style.color = "#2c3e50";
+        document.getElementById('game-audio').pause();
+    }
+
+    function tampilkanJawaban() {
+        document.getElementById('display-text').innerText = dataSekarang.huruf;
+        document.getElementById('display-text').style.color = "#e67e22";
+        
+        const audio = document.getElementById('game-audio');
+        audio.src = dataSekarang.suara;
+        audio.play();
+    }
+
+    window.onload = () => {
+        buatMenuHuruf();
+        acakGame();
+    };
+</script>
+
+</body>
+</html>
