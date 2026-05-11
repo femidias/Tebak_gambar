@@ -24,12 +24,11 @@
             align-items: center;
             gap: 15px;
             width: 100%;
-            max-width: 500px; /* Ukuran maksimal agar nyaman di mata */
+            max-width: 500px;
         }
 
         .alphabet-grid {
             display: grid;
-            /* Membuat 7 kolom yang sama rata */
             grid-template-columns: repeat(7, 1fr); 
             gap: 8px;
             width: 100%;
@@ -82,19 +81,25 @@
 
         .image-wrapper {
             width: 100%;
-            max-width: 280px; /* Batasi ukuran gambar agar tidak terlalu besar */
+            max-width: 280px; 
             margin: 0 auto;
-            aspect-ratio: 1 / 1; /* Menjaga tetap kotak tanpa CSS absolute */
+            aspect-ratio: 1 / 1; 
+            /* Memberi background putih jika gambar tidak kotak, 
+               agar bingkai putih tetap terlihat kotak sempurna */
+            background-color: white; 
+            border-radius: 20px;
+            overflow: hidden; /* Memastikan background tidak keluar border radius */
+            border: 6px solid #ffffff;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            box-sizing: border-box; /* Sangat penting agar border tidak menambah ukuran */
         }
 
         #game-image {
             width: 100%;
             height: 100%;
-            object-fit: cover;
-            border-radius: 20px;
+            /* PERBAIKAN: Gunakan 'contain' agar seluruh gambar terlihat, tidak terpotong */
+            object-fit: contain; 
             cursor: pointer;
-            border: 6px solid #ffffff;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
             transition: transform 0.2s;
         }
 
@@ -116,7 +121,6 @@
             margin-top: 5px;
         }
 
-        /* Penyesuaian untuk layar HP kecil */
         @media (max-width: 400px) {
             .alphabet-grid {
                 grid-template-columns: repeat(6, 1fr);
@@ -133,7 +137,7 @@
 
 <div class="main-layout">
     <div id="alphabet-container" class="alphabet-grid">
-        </div>
+    </div>
 
     <div class="container">
         <div class="image-wrapper">
@@ -179,7 +183,7 @@
         const container = document.getElementById('alphabet-container');
         const alfabetLengkap = "ABCDEFGHIJKLMNOPQRSTUVWXYZ".split("");
 
-        container.innerHTML = ''; // Bersihkan kontainer
+        container.innerHTML = ''; 
 
         alfabetLengkap.forEach(huruf => {
             const btn = document.createElement('div');
@@ -220,7 +224,8 @@
         document.getElementById('game-image').src = dataSekarang.gambar;
         document.getElementById('display-text').innerText = "?";
         document.getElementById('display-text').style.color = "#2c3e50";
-        document.getElementById('game-audio').pause();
+        const audio = document.getElementById('game-audio');
+        if(audio.src) audio.pause();
     }
 
     function tampilkanJawaban() {
@@ -229,7 +234,7 @@
         
         const audio = document.getElementById('game-audio');
         audio.src = dataSekarang.suara;
-        audio.play().catch(e => console.log("Audio play diblokir browser sebelum interaksi"));
+        audio.play().catch(e => console.log("Audio play ditunda"));
     }
 
     window.onload = () => {
