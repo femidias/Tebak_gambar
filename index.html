@@ -102,9 +102,31 @@
             min-height: 1.2em;
         }
 
+        /* Tombol Kontrol Utama */
+        .main-controls {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+
+        .btn-action {
+            padding: 12px;
+            border: none;
+            border-radius: 12px;
+            font-weight: bold;
+            cursor: pointer;
+            font-size: 1rem;
+            transition: transform 0.1s, background 0.2s;
+            color: white;
+        }
+
+        .btn-answer { background-color: #f39c12; }
+        .btn-next { background-color: #27ae60; }
+        .btn-action:active { transform: scale(0.95); }
+
         /* Papan Tulis (Tracing) */
         .tracing-container {
-            margin-top: 10px;
             background: #ffffff;
             border-radius: 15px;
             border: 2px dashed #3498db;
@@ -130,17 +152,10 @@
             background: #e74c3c;
             color: white;
             border: none;
-            padding: 8px 20px;
-            border-radius: 50px;
+            padding: 6px 15px;
+            border-radius: 5px;
             cursor: pointer;
-            font-weight: bold;
-            font-size: 0.8rem;
-        }
-
-        .hint {
-            font-size: 0.7rem;
-            color: #7f8c8d;
-            margin-top: 5px;
+            font-size: 0.75rem;
         }
     </style>
 </head>
@@ -156,15 +171,18 @@
         
         <div id="display-text">?</div>
 
+        <div class="main-controls">
+            <button class="btn-action btn-answer" onclick="tampilkanJawabanManual()">Lihat Jawaban</button>
+            <button class="btn-action btn-next" onclick="acakGame()">Ganti Gambar</button>
+        </div>
+
         <div class="tracing-container">
-            <div style="font-size: 0.7rem; color: #7f8c8d; padding: 5px 0;">Ikuti bayangan huruf di bawah:</div>
+            <div style="font-size: 0.65rem; color: #7f8c8d; padding: 5px 0;">Tiru hurufnya di sini:</div>
             <canvas id="tracingCanvas"></canvas>
             <div class="canvas-controls">
-                <button class="btn-clear" onclick="resetPapan()">Bersihkan Papan</button>
+                <button class="btn-clear" onclick="resetPapan()">Hapus Tulisan</button>
             </div>
         </div>
-        
-        <p class="hint">Sentuh gambar untuk jawaban/acak • Tulis di kotak putih</p>
     </div>
 </div>
 
@@ -199,7 +217,6 @@
     let dataSekarang = {};
     let statusJawabanTerbuka = false;
 
-    // --- LOGIKA CANVAS (TRACING) ---
     const canvas = document.getElementById('tracingCanvas');
     const ctx = canvas.getContext('2d');
     let drawing = false;
@@ -212,24 +229,16 @@
         ctx.strokeStyle = '#2980b9';
     }
 
-    function startPosition(e) {
-        drawing = true;
-        draw(e);
-    }
-
-    function finishedPosition() {
-        drawing = false;
-        ctx.beginPath();
-    }
+    function startPosition(e) { drawing = true; draw(e); }
+    function finishedPosition() { drawing = false; ctx.beginPath(); }
 
     function draw(e) {
         if (!drawing) return;
         const rect = canvas.getBoundingClientRect();
-        const clientX = e.clientX || e.touches[0].clientX;
-        const clientY = e.clientY || e.touches[0].clientY;
+        const clientX = e.clientX || (e.touches && e.touches[0].clientX);
+        const clientY = e.clientY || (e.touches && e.touches[0].clientY);
         const x = clientX - rect.left;
         const y = clientY - rect.top;
-
         ctx.lineTo(x, y);
         ctx.stroke();
         ctx.beginPath();
@@ -245,35 +254,30 @@
         ctx.fillText(dataSekarang.kode, canvas.width / 2, canvas.height / 2);
     }
 
-    function resetPapan() {
-        buatBayanganHuruf();
-    }
+    function resetPapan() { buatBayanganHuruf(); }
 
-    // --- LOGIKA GAME ---
     function buatMenuHuruf() {
         const container = document.getElementById('alphabet-container');
-        const alfabetLengkap = "ABCDEFGHIJKLMNOPQRSTUVWXYZ".split("");
-        alfabetLengkap.forEach(huruf => {
+        "ABCDEFGHIJKLMNOPQRSTUVWXYZ".split("").forEach(huruf => {
             const btn = document.createElement('div');
             btn.className = 'letter-btn';
             btn.innerText = huruf;
             const dataItem = daftarData.find(d => d.kode === huruf);
             if (dataItem) {
                 btn.onclick = () => { dataSekarang = dataItem; tampilkanSoal(); };
-            } else {
-                btn.classList.add('disabled');
-            }
+            } else { btn.classList.add('disabled'); }
             container.appendChild(btn);
         });
     }
 
     function handleKlikGambar() {
-        if (!statusJawabanTerbuka) {
-            tampilkanJawaban();
-            statusJawabanTerbuka = true;
-        } else {
-            acakGame();
-        }
+        if (!statusJawabanTerbuka) { tampilkanJawaban(); statusJawabanTerbuka = true; } 
+        else { acakGame(); }
+    }
+
+    function tampilkanJawabanManual() {
+        tampilkanJawaban();
+        statusJawabanTerbuka = true;
     }
 
     function acakGame() {
@@ -295,10 +299,9 @@
         document.getElementById('display-text').style.color = "#e67e22";
         const audio = document.getElementById('game-audio');
         audio.src = dataSekarang.suara;
-        audio.play().catch(e => console.log("Audio play blocked"));
+        audio.play().catch(e => {});
     }
 
-    // Event listeners untuk drawing
     canvas.addEventListener('mousedown', startPosition);
     canvas.addEventListener('mouseup', finishedPosition);
     canvas.addEventListener('mousemove', draw);
@@ -306,12 +309,7 @@
     canvas.addEventListener('touchend', finishedPosition);
     canvas.addEventListener('touchmove', (e) => { draw(e); e.preventDefault(); }, {passive: false});
 
-    window.onload = () => {
-        initCanvas();
-        buatMenuHuruf();
-        acakGame();
-    };
+    window.onload = () => { initCanvas(); buatMenuHuruf(); acakGame(); };
 </script>
-
 </body>
 </html>
